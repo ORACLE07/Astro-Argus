@@ -238,7 +238,6 @@ function App() {
 
           {/* RIGHT SIDE TABLE: CONDITIONAL BASED ON ACTIVE TAB */}
           {activeTab === 'rolling' ? (
-            /* Rolling Tab Right Table: Stock vs Sector Index Ratio across 1D, 7D, 14D, 21D, 28D */
             <div className="span-6 panel a-cyan">
               <div className="p-head">
                 <h2 className="p-title">Stock / Sector Index Ratio — {activeSector}</h2>
@@ -290,7 +289,6 @@ function App() {
               </div>
             </div>
           ) : (
-            /* Heatmap Tab Right Table: Standard Constituents & Option Spurts */
             <div className="span-6 panel a-violet">
               <div className="p-head">
                 <h2 className="p-title">Constituents &amp; Options — {activeSector}</h2>
