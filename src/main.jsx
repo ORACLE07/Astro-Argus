@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
 const sectors = [
-  { name: 'All sectors', count: 198, change: 0.84, color: '#38bdf8' },
-  { name: 'Financial Services', count: 26, change: 1.42, color: '#60a5fa' },
-  { name: 'Information Technology', count: 10, change: 0.78, color: '#818cf8' },
-  { name: 'Oil, Gas & Consumable Fuels', count: 11, change: -0.36, color: '#f59e0b' },
-  { name: 'Fast Moving Consumer Goods', count: 15, change: 0.24, color: '#10b981' },
-  { name: 'Automobile & Auto Components', count: 15, change: 1.86, color: '#f43f5e' },
-  { name: 'Healthcare', count: 13, change: -0.18, color: '#8b5cf6' },
-  { name: 'Metals & Mining', count: 15, change: 2.34, color: '#f59e0b' },
-  { name: 'Consumer Durables', count: 10, change: 0.63, color: '#38bdf8' },
+  { name: 'All sectors', count: 198, change: 0.84, color: '#4cc9f0' },
+  { name: 'Financial Services', count: 26, change: 1.42, color: '#7c9bff' },
+  { name: 'Information Technology', count: 10, change: 0.78, color: '#8e85ff' },
+  { name: 'Oil, Gas & Consumable Fuels', count: 11, change: -0.36, color: '#f5a524' },
+  { name: 'Fast Moving Consumer Goods', count: 15, change: 0.24, color: '#3ddc97' },
+  { name: 'Automobile & Auto Components', count: 15, change: 1.86, color: '#ff5050' },
+  { name: 'Healthcare', count: 13, change: -0.18, color: '#a78bfa' },
+  { name: 'Metals & Mining', count: 15, change: 2.34, color: '#f5a524' },
+  { name: 'Consumer Durables', count: 10, change: 0.63, color: '#4cc9f0' },
 ];
 
 const stocks = [
@@ -24,11 +24,9 @@ const stocks = [
 const demoRolling = sectors.slice(1).map((s, i) => ({ name: s.name, return7d: Number((s.change * 1.1 + (i % 3) * .28).toFixed(2)), return14d: Number((s.change * 1.7 + (i % 2) * .42).toFixed(2)), return28d: Number((s.change * 2.4 - (i % 4) * .18).toFixed(2)) }));
 
 const heatColor = value => {
-  if (value == null) return { background: '#121824', color: '#64748b' };
+  if (value == null) return { background: '#101927', color: '#70829b' };
   const strength = Math.min(Math.abs(value) / 12, 1);
-  return value >= 0
-    ? { background: `rgba(16, 185, 129, ${0.14 + strength * 0.38})`, color: strength > 0.45 ? '#ffffff' : '#34d399' }
-    : { background: `rgba(244, 63, 94, ${0.14 + strength * 0.38})`, color: strength > 0.45 ? '#ffffff' : '#fb7185' };
+  return value >= 0 ? { background: `rgba(61,220,151,${0.12 + strength * 0.35})`, color: strength > .45 ? '#fff' : '#3ddc97' } : { background: `rgba(255,80,80,${0.12 + strength * 0.35})`, color: strength > .45 ? '#fff' : '#ff5050' };
 };
 
 function App() {
@@ -71,286 +69,260 @@ function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="topbar-inner">
-          <div className="brand">
-            <div className="brand-mark">N</div>
-            <div>
-              <div className="brand-name">NiftyLens</div>
-              <div className="brand-sub">Market Intelligence Terminal</div>
-            </div>
+        <div className="brand">
+          <div className="mark">N</div>
+          <div>
+            <div className="name">NiftyLens</div>
+            <div className="sub">Market intelligence terminal</div>
           </div>
-          <div className="top-right">
-            <div className="clocks">
-              <div>{timeStr.ist}<span>IST</span></div>
-              <div>{timeStr.utc}<span>UTC</span></div>
-            </div>
-            <div className={`status ${liveData ? 'ok' : 'err'}`}>
-              <span className="dot" />
-              <span>{liveData ? 'NSE Live' : 'Demo Mode'}</span>
-            </div>
+        </div>
+        <div className="top-right">
+          <div className="clocks">
+            <span><b className="mono">{timeStr.ist}</b> IST</span>
+            <span><b className="mono">{timeStr.utc}</b> UTC</span>
           </div>
+          <span className={`chip ${liveData ? 'live' : 'demo'}`}>
+            <i className="dot" />
+            {liveData ? 'NSE live' : 'Demo data'}
+          </span>
         </div>
       </header>
 
       <main>
-        <div className="dash">
-          {/* Stats Ribbon */}
-          <div className="span-12 stats-grid">
-            <div className="stat-card a-amber">
-              <span>Nifty 50 Index</span>
-              <strong className="mono">{(liveData?.nifty.last || 25141.4).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-            </div>
-            <div className="stat-card a-green">
-              <span>Total Advancers</span>
-              <strong className="mono positive">{breadthTotals.advances}</strong>
-            </div>
-            <div className="stat-card a-red">
-              <span>Total Decliners</span>
-              <strong className="mono negative">{breadthTotals.declines}</strong>
-            </div>
-            <div className="stat-card a-cyan">
-              <span>Market Breadth Ratio</span>
-              <strong className="mono">{breadthTotals.declines ? (breadthTotals.advances / breadthTotals.declines).toFixed(2) : '0.00'}</strong>
-            </div>
+        <div className="stats">
+          <div className="stat index">
+            <span className="label">Nifty 50</span>
+            <strong className="mono">{(liveData?.nifty.last || 25141.4).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
           </div>
-
-          {/* Floating Levitating Tab Switcher */}
-          <div className="span-12 floating-tabs-row">
-            <div className="floating-dock-wrapper">
-              <div className="floating-dock">
-                <div className={`floating-glider ${activeTab}`} />
-                <button
-                  onClick={() => setActiveTab('rolling')}
-                  className={`floating-tab-btn ${activeTab === 'rolling' ? 'active-rolling' : ''}`}
-                >
-                  Rolling Table
-                </button>
-                <button
-                  onClick={() => setActiveTab('heatmap')}
-                  className={`floating-tab-btn ${activeTab === 'heatmap' ? 'active-heatmap' : ''}`}
-                >
-                  Sector Heatmap
-                </button>
-              </div>
-            </div>
+          <div className="stat">
+            <span className="label">Advancers</span>
+            <strong className="mono pos">{breadthTotals.advances}</strong>
           </div>
-
-          {/* TAB 1: ROLLING TABLE */}
-          {activeTab === 'rolling' && (
-            <div key="panel-rolling" className="span-6 panel a-cyan panel-anim-left">
-              <div className="p-head">
-                <h2 className="p-title">Sector Rolling Returns</h2>
-                <span className="n">Click row to inspect sector</span>
-              </div>
-              <div className="body" style={{ maxHeight: '480px' }}>
-                <table>
-                  <thead>
-                    <tr><th>Sector</th><th>Adv / Dec</th><th>7D Return</th><th>14D Return</th><th>28D Return</th></tr>
-                  </thead>
-                  <tbody>
-                    {rolling.map(row => {
-                      const secInfo = currentSectors.find(s => s.name === row.name) || {};
-                      const market = secInfo.market || {};
-                      const isSelected = activeSector === row.name;
-                      return (
-                        <tr 
-                          key={row.name} 
-                          onClick={() => setActiveSector(row.name)}
-                          style={{ cursor: 'pointer', background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'transparent' }}
-                        >
-                          <td><strong>{row.name}</strong></td>
-                          <td className="mono"><span className="positive">{market.advances || 0}</span> / <span className="negative">{market.declines || 0}</span></td>
-                          <td className="mono"><span className={row.return7d < 0 ? 'negative' : 'positive'}>{row.return7d > 0 ? '+' : ''}{row.return7d?.toFixed(2)}%</span></td>
-                          <td className="mono"><span className={row.return14d < 0 ? 'negative' : 'positive'}>{row.return14d > 0 ? '+' : ''}{row.return14d?.toFixed(2)}%</span></td>
-                          <td className="mono"><span className={row.return28d < 0 ? 'negative' : 'positive'}>{row.return28d > 0 ? '+' : ''}{row.return28d?.toFixed(2)}%</span></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: SECTOR HEATMAP */}
-          {activeTab === 'heatmap' && (
-            <div key="panel-heatmap" className="span-6 panel a-green panel-anim-left">
-              <div className="p-head">
-                <h2 className="p-title">Sector Heatmap &amp; Relative Strength</h2>
-                <span className="n">Click row to inspect sector</span>
-              </div>
-              <div className="body" style={{ maxHeight: '480px' }}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Sector</th>
-                      <th>Adv / Dec</th>
-                      <th>Gap Open</th>
-                      <th><button className="table-sort" onClick={() => setHeatmapDescending(v => !v)}>From Open {heatmapDescending ? '↓' : '↑'}</button></th>
-                      <th>Price / Nifty</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedHeatmapSectors.map(sector => {
-                      const market = sector.market || {};
-                      const pct = val => `${val > 0 ? '+' : ''}${(val || 0).toFixed(2)}%`;
-                      const isSelected = activeSector === sector.name;
-                      return (
-                        <tr 
-                          key={sector.name} 
-                          onClick={() => setActiveSector(sector.name)} 
-                          style={{ cursor: 'pointer', background: isSelected ? 'rgba(16, 185, 129, 0.12)' : 'transparent' }}
-                        >
-                          <td><strong>{sector.name}</strong></td>
-                          <td className="mono"><span className="positive">{market.advances || 0}</span> / <span className="negative">{market.declines || 0}</span></td>
-                          <td><span className="heat-cell" style={heatColor(market.gapOpen || 0)}>{pct(market.gapOpen)}</span></td>
-                          <td><span className="heat-cell" style={heatColor(market.fromOpen || 0)}>{pct(market.fromOpen)}</span></td>
-                          <td className="mono">{ratio(market.last, niftyLevel)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* RIGHT SIDE TABLE: CONDITIONAL BASED ON ACTIVE TAB */}
-          {activeTab === 'rolling' ? (
-            <div key={`ratio-${activeSector}`} className="span-6 panel a-cyan panel-anim-right">
-              <div className="p-head">
-                <h2 className="p-title">Stock / Sector Index Ratio — {activeSector}</h2>
-                <span className="n">{selectedConstituents.length} stocks</span>
-              </div>
-              <div className="body" style={{ maxHeight: '480px' }}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Stock</th>
-                      <th>1 Day</th>
-                      <th>7 Day</th>
-                      <th>14 Day</th>
-                      <th>21 Day</th>
-                      <th>28 Day</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedConstituents.length ? selectedConstituents.map(stock => {
-                      const secInfo = currentSectors.find(s => s.name === activeSector) || {};
-                      const secChange1D = secInfo.change || selectedSectorData?.change || 1; 
-                      const rollData = rolling.find(r => r.name === activeSector) || {};
-                      const sec7D = rollData.return7d || 1;
-                      const sec14D = rollData.return14d || 1;
-                      const sec21D = (rollData.return14d + rollData.return28d) / 2 || 1;
-                      const sec28D = rollData.return28d || 1;
-
-                      const ratio1D = (stock.change / (secChange1D !== 0 ? secChange1D : 1)).toFixed(2);
-                      const ratio7D = ((stock.change * 1.05) / (sec7D !== 0 ? sec7D : 1)).toFixed(2);
-                      const ratio14D = ((stock.change * 1.1) / (sec14D !== 0 ? sec14D : 1)).toFixed(2);
-                      const ratio21D = ((stock.change * 1.15) / (sec21D !== 0 ? sec21D : 1)).toFixed(2);
-                      const ratio28D = ((stock.change * 1.2) / (sec28D !== 0 ? sec28D : 1)).toFixed(2);
-
-                      return (
-                        <tr key={`roll-${stock.symbol}`}>
-                          <td><strong>{stock.symbol}</strong> <small style={{ color: 'var(--muted)' }}>{stock.name}</small></td>
-                          <td className="mono"><span className={Number(ratio1D) < 1 ? 'negative' : 'positive'}>{ratio1D}x</span></td>
-                          <td className="mono"><span className={Number(ratio7D) < 1 ? 'negative' : 'positive'}>{ratio7D}x</span></td>
-                          <td className="mono"><span className={Number(ratio14D) < 1 ? 'negative' : 'positive'}>{ratio14D}x</span></td>
-                          <td className="mono"><span className={Number(ratio21D) < 1 ? 'negative' : 'positive'}>{ratio21D}x</span></td>
-                          <td className="mono"><span className={Number(ratio28D) < 1 ? 'negative' : 'positive'}>{ratio28D}x</span></td>
-                        </tr>
-                      );
-                    }) : (
-                      <tr><td colSpan="6" style={{ color: 'var(--muted)', textAlign: 'center', padding: '30px' }}>No stocks found for {activeSector}.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div key={`const-${activeSector}`} className="span-6 panel a-violet panel-anim-right">
-              <div className="p-head">
-                <h2 className="p-title">Constituents &amp; Options — {activeSector}</h2>
-                <span className="n">{selectedConstituents.length} stocks</span>
-              </div>
-              <div className="body" style={{ maxHeight: '480px' }}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Stock</th>
-                      <th><button className="table-sort" onClick={() => setStockDescending(v => !v)}>Price % {stockDescending ? '↓' : '↑'}</button></th>
-                      <th>Futures OI</th>
-                      <th>OI Change</th>
-                      <th>Volume</th>
-                      <th>Build</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedConstituents.length ? sortedConstituents.map(stock => {
-                      const isSelected = selectedStockSymbol === stock.symbol;
-                      const options = stock.optionSpurts || [];
-                      const hasOptions = options.length > 0;
-                      const totalOptionVolume = options.reduce((acc, opt) => acc + opt.volume, 0);
-                      
-                      return (
-                        <React.Fragment key={`${stock.sector}-${stock.symbol}`}>
-                          <tr 
-                            onClick={() => setSelectedStockSymbol(curr => curr === stock.symbol ? null : stock.symbol)}
-                            style={{ 
-                              cursor: 'pointer', 
-                              background: hasOptions ? 'rgba(139, 92, 246, 0.1)' : 'transparent' 
-                            }}
-                          >
-                            <td><strong>{stock.symbol}</strong> <small style={{ color: 'var(--muted)' }}>{stock.name}</small></td>
-                            <td className="mono"><span className={stock.change < 0 ? 'negative' : 'positive'}>{formatPct(stock.change)}</span></td>
-                            <td className="mono">{stock.futuresOi == null ? 'N/A' : stock.futuresOi.toLocaleString('en-IN')}</td>
-                            <td className="mono">{stock.futuresOiChange == null ? 'N/A' : stock.futuresOiChange.toLocaleString('en-IN')}</td>
-                            <td className="mono">{(stock.volume || 0).toLocaleString('en-IN')}</td>
-                            <td className="mono"><span style={{ color: 'var(--amber)' }}>{buildLabel(stock)}</span></td>
-                          </tr>
-                          {isSelected && (
-                            <tr>
-                              <td colSpan="6" style={{ background: 'var(--bg)', padding: '10px 12px' }}>
-                                <div style={{ fontSize: '10.5px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--violet)', marginBottom: '6px' }}>
-                                  {stock.symbol} — Options ({options.length})
-                                </div>
-                                <table>
-                                  <thead>
-                                    <tr><th>Strike</th><th>OI</th><th>Vol %</th></tr>
-                                  </thead>
-                                  <tbody>
-                                    {options.length ? options.map((opt, idx) => (
-                                      <tr key={idx}>
-                                        <td className="mono">{opt.strikePrice} {opt.optionType}</td>
-                                        <td className="mono">{opt.oi?.toLocaleString('en-IN')}</td>
-                                        <td className="mono">{formatPct(totalOptionVolume ? (opt.volume / totalOptionVolume) * 100 : 0)}</td>
-                                      </tr>
-                                    )) : (
-                                      <tr><td colSpan="3" style={{ color: 'var(--muted)', textAlign: 'center', padding: '6px' }}>No active options data.</td></tr>
-                                    )}
-                                  </tbody>
-                                </table>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    }) : (
-                      <tr><td colSpan="6" style={{ color: 'var(--muted)', textAlign: 'center', padding: '30px' }}>No stocks found for {activeSector}.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
+          <div className="stat">
+            <span className="label">Decliners</span>
+            <strong className="mono neg">{breadthTotals.declines}</strong>
+          </div>
+          <div className="stat">
+            <span className="label">Breadth ratio</span>
+            <strong className="mono">{breadthTotals.declines ? (breadthTotals.advances / breadthTotals.declines).toFixed(2) : '0.00'}</strong>
+            <span className="split wide"><i style={{ width: `${(breadthTotals.advances / (breadthTotals.advances + breadthTotals.declines || 1)) * 100}%` }} /></span>
+          </div>
         </div>
 
-        <footer>
-          <p>NiftyLens Terminal — Open Source Indian Market Intelligence Dashboard</p>
-          <p>Data Source: NSE India · Real-time Feed</p>
-        </footer>
+        <div className="tabs" role="tablist">
+          <button role="tab" aria-selected={activeTab === 'rolling'} className={activeTab === 'rolling' ? 'on' : ''} onClick={() => setActiveTab('rolling')}>Rolling returns</button>
+          <button role="tab" aria-selected={activeTab === 'heatmap'} className={activeTab === 'heatmap' ? 'on' : ''} onClick={() => setActiveTab('heatmap')}>Sector heatmap</button>
+        </div>
+
+        <div className="dash">
+          {activeTab === 'rolling' ? (
+            <>
+              <section className="panel a-cyan">
+                <div className="p-head">
+                  <h2>Sector rolling returns</h2>
+                  <span className="note">Select a row to inspect a sector</span>
+                </div>
+                <div className="body">
+                  <table>
+                    <thead>
+                      <tr><th>Sector</th><th>Adv / Dec</th><th className="r">7D</th><th className="r">14D</th><th className="r">28D</th></tr>
+                    </thead>
+                    <tbody>
+                      {rolling.map(row => {
+                        const secInfo = currentSectors.find(s => s.name === row.name) || {};
+                        const market = secInfo.market || {};
+                        const isSelected = activeSector === row.name;
+                        return (
+                          <tr 
+                            key={row.name} 
+                            className={isSelected ? 'sel' : ''}
+                            onClick={() => setActiveSector(row.name)}
+                          >
+                            <td className="strong">{row.name}</td>
+                            <td><span className="mono"><b className="pos">{market.advances || 0}</b><em>/</em><b className="neg">{market.declines || 0}</b></span></td>
+                            <td className="r"><span className={`mono ${row.return7d < 0 ? 'neg' : 'pos'}`}>{row.return7d > 0 ? '+' : ''}{row.return7d?.toFixed(2)}%</span></td>
+                            <td className="r"><span className={`mono ${row.return14d < 0 ? 'neg' : 'pos'}`}>{row.return14d > 0 ? '+' : ''}{row.return14d?.toFixed(2)}%</span></td>
+                            <td className="r"><span className={`mono ${row.return28d < 0 ? 'neg' : 'pos'}`}>{row.return28d > 0 ? '+' : ''}{row.return28d?.toFixed(2)}%</span></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section className="panel a-cyan">
+                <div className="p-head">
+                  <h2>Stock ÷ sector ratio: {activeSector}</h2>
+                  <span className="note">{selectedConstituents.length} stocks</span>
+                </div>
+                <div className="body">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Stock</th>
+                        <th className="r">1D</th>
+                        <th className="r">7D</th>
+                        <th className="r">14D</th>
+                        <th className="r">21D</th>
+                        <th className="r">28D</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedConstituents.length ? selectedConstituents.map(stock => {
+                        const secInfo = currentSectors.find(s => s.name === activeSector) || {};
+                        const secChange1D = secInfo.change || selectedSectorData?.change || 1; 
+                        const rollData = rolling.find(r => r.name === activeSector) || {};
+                        const sec7D = rollData.return7d || 1;
+                        const sec14D = rollData.return14d || 1;
+                        const sec21D = (rollData.return14d + rollData.return28d) / 2 || 1;
+                        const sec28D = rollData.return28d || 1;
+
+                        const ratio1D = (stock.change / (secChange1D !== 0 ? secChange1D : 1)).toFixed(2);
+                        const ratio7D = ((stock.change * 1.05) / (sec7D !== 0 ? sec7D : 1)).toFixed(2);
+                        const ratio14D = ((stock.change * 1.1) / (sec14D !== 0 ? sec14D : 1)).toFixed(2);
+                        const ratio21D = ((stock.change * 1.15) / (sec21D !== 0 ? sec21D : 1)).toFixed(2);
+                        const ratio28D = ((stock.change * 1.2) / (sec28D !== 0 ? sec28D : 1)).toFixed(2);
+
+                        return (
+                          <tr key={`roll-${stock.symbol}`}>
+                            <td><span className="strong">{stock.symbol}</span> <small>{stock.name}</small></td>
+                            <td className="r"><span className={`mono ${Number(ratio1D) < 1 ? 'neg' : 'pos'}`}>{ratio1D}x</span></td>
+                            <td className="r"><span className={`mono ${Number(ratio7D) < 1 ? 'neg' : 'pos'}`}>{ratio7D}x</span></td>
+                            <td className="r"><span className={`mono ${Number(ratio14D) < 1 ? 'neg' : 'pos'}`}>{ratio14D}x</span></td>
+                            <td className="r"><span className={`mono ${Number(ratio21D) < 1 ? 'neg' : 'pos'}`}>{ratio21D}x</span></td>
+                            <td className="r"><span className={`mono ${Number(ratio28D) < 1 ? 'neg' : 'pos'}`}>{ratio28D}x</span></td>
+                          </tr>
+                        );
+                      }) : (
+                        <tr><td colSpan="6" className="empty">No stocks found for {activeSector}.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </>
+          ) : (
+            <>
+              <section className="panel a-green">
+                <div className="p-head">
+                  <h2>Sector heatmap and relative strength</h2>
+                  <span className="note">Select a row to inspect a sector</span>
+                </div>
+                <div className="body">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Sector</th>
+                        <th>Adv / Dec</th>
+                        <th className="r">Gap open</th>
+                        <th className="r"><button className="sort" onClick={() => setHeatmapDescending(v => !v)}>From open {heatmapDescending ? '↓' : '↑'}</button></th>
+                        <th className="r">Price ÷ Nifty</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedHeatmapSectors.map(sector => {
+                        const market = sector.market || {};
+                        const pct = val => `${val > 0 ? '+' : ''}${(val || 0).toFixed(2)}%`;
+                        const isSelected = activeSector === sector.name;
+                        return (
+                          <tr 
+                            key={sector.name} 
+                            className={isSelected ? 'sel' : ''}
+                            onClick={() => setActiveSector(sector.name)} 
+                          >
+                            <td className="strong">{sector.name}</td>
+                            <td><span className="mono"><b className="pos">{market.advances || 0}</b><em>/</em><b className="neg">{market.declines || 0}</b></span></td>
+                            <td className="r"><span className="heat mono" style={heatColor(market.gapOpen || 0)}>{pct(market.gapOpen)}</span></td>
+                            <td className="r"><span className="heat mono" style={heatColor(market.fromOpen || 0)}>{pct(market.fromOpen)}</span></td>
+                            <td className="r mono">{ratio(market.last, niftyLevel)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section className="panel a-violet">
+                <div className="p-head">
+                  <h2>Constituents and options: {activeSector}</h2>
+                  <span className="note">{selectedConstituents.length} stocks</span>
+                </div>
+                <div className="body">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Stock</th>
+                        <th className="r"><button className="sort" onClick={() => setStockDescending(v => !v)}>Price {stockDescending ? '↓' : '↑'}</button></th>
+                        <th className="r">Futures OI</th>
+                        <th className="r">OI change</th>
+                        <th className="r">Volume</th>
+                        <th>Build</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedConstituents.length ? sortedConstituents.map(stock => {
+                        const isSelected = selectedStockSymbol === stock.symbol;
+                        const options = stock.optionSpurts || [];
+                        const hasOptions = options.length > 0;
+                        const totalOptionVolume = options.reduce((acc, opt) => acc + opt.volume, 0);
+                        const [label, cls] = buildLabel(stock);
+                        
+                        return (
+                          <React.Fragment key={`${stock.sector}-${stock.symbol}`}>
+                            <tr 
+                              className={`${isSelected ? 'sel' : ''} ${hasOptions ? 'has-opt' : ''}`}
+                              onClick={() => setSelectedStockSymbol(curr => curr === stock.symbol ? null : stock.symbol)}
+                            >
+                              <td><span className="strong">{stock.symbol}</span> <small>{stock.name}</small></td>
+                              <td className="r"><span className={`mono ${stock.change < 0 ? 'neg' : 'pos'}`}>{formatPct(stock.change)}</span></td>
+                              <td className="r mono">{stock.futuresOi == null ? '—' : stock.futuresOi.toLocaleString('en-IN')}</td>
+                              <td className="r"><span className={`mono ${stock.futuresOiChange < 0 ? 'neg' : 'pos'}`}>{stock.futuresOiChange == null ? '—' : stock.futuresOiChange.toLocaleString('en-IN')}</span></td>
+                              <td className="r mono">{(stock.volume || 0).toLocaleString('en-IN')}</td>
+                              <td><span className={`tag ${cls}`}>{label}</span></td>
+                            </tr>
+                            {isSelected && (
+                              <tr className="detail">
+                                <td colSpan="6">
+                                  <div className="d-title">{stock.symbol} options ({options.length})</div>
+                                  <table>
+                                    <thead>
+                                      <tr><th>Strike</th><th className="r">OI</th><th className="r">Share of volume</th></tr>
+                                    </thead>
+                                    <tbody>
+                                      {options.length ? options.map((opt, idx) => (
+                                        <tr key={idx}>
+                                          <td className="mono">{opt.strikePrice} {opt.optionType}</td>
+                                          <td className="r mono">{opt.oi?.toLocaleString('en-IN')}</td>
+                                          <td className="r mono">{totalOptionVolume ? ((opt.volume / totalOptionVolume) * 100).toFixed(2) : '0.00'}%</td>
+                                        </tr>
+                                      )) : (
+                                        <tr><td colSpan="3" className="empty">No active options data.</td></tr>
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      }) : (
+                        <tr><td colSpan="6" className="empty">No stocks found for {activeSector}.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </>
+          )}
+        </div>
       </main>
+
+      <footer>
+        <p>NiftyLens Terminal — Open Source Indian Market Intelligence Dashboard</p>
+        <p>Data Source: NSE India · Real-time Feed</p>
+      </footer>
     </div>
   );
 }
