@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
 const sectors = [
-  { name: 'All sectors', count: 198, change: 0.84, color: '#4cc9f0' },
-  { name: 'Financial Services', count: 26, change: 1.42, color: '#7c9bff' },
-  { name: 'Information Technology', count: 10, change: 0.78, color: '#8e85ff' },
-  { name: 'Oil, Gas & Consumable Fuels', count: 11, change: -0.36, color: '#f5a524' },
-  { name: 'Fast Moving Consumer Goods', count: 15, change: 0.24, color: '#3ddc97' },
-  { name: 'Automobile & Auto Components', count: 15, change: 1.86, color: '#ff5050' },
-  { name: 'Healthcare', count: 13, change: -0.18, color: '#a78bfa' },
-  { name: 'Metals & Mining', count: 15, change: 2.34, color: '#f5a524' },
-  { name: 'Consumer Durables', count: 10, change: 0.63, color: '#4cc9f0' },
+  { name: 'All sectors', count: 198, change: 0.84, color: '#38bdf8' },
+  { name: 'Financial Services', count: 26, change: 1.42, color: '#60a5fa' },
+  { name: 'Information Technology', count: 10, change: 0.78, color: '#818cf8' },
+  { name: 'Oil, Gas & Consumable Fuels', count: 11, change: -0.36, color: '#f59e0b' },
+  { name: 'Fast Moving Consumer Goods', count: 15, change: 0.24, color: '#10b981' },
+  { name: 'Automobile & Auto Components', count: 15, change: 1.86, color: '#f43f5e' },
+  { name: 'Healthcare', count: 13, change: -0.18, color: '#8b5cf6' },
+  { name: 'Metals & Mining', count: 15, change: 2.34, color: '#f59e0b' },
+  { name: 'Consumer Durables', count: 10, change: 0.63, color: '#38bdf8' },
 ];
 
 const stocks = [
@@ -24,9 +24,11 @@ const stocks = [
 const demoRolling = sectors.slice(1).map((s, i) => ({ name: s.name, return7d: Number((s.change * 1.1 + (i % 3) * .28).toFixed(2)), return14d: Number((s.change * 1.7 + (i % 2) * .42).toFixed(2)), return28d: Number((s.change * 2.4 - (i % 4) * .18).toFixed(2)) }));
 
 const heatColor = value => {
-  if (value == null) return { background: '#101927', color: '#70829b' };
+  if (value == null) return { background: '#121824', color: '#64748b' };
   const strength = Math.min(Math.abs(value) / 12, 1);
-  return value >= 0 ? { background: `rgba(61,220,151,${0.12 + strength * 0.35})`, color: strength > .45 ? '#fff' : '#3ddc97' } : { background: `rgba(255,80,80,${0.12 + strength * 0.35})`, color: strength > .45 ? '#fff' : '#ff5050' };
+  return value >= 0
+    ? { background: `rgba(16, 185, 129, ${0.14 + strength * 0.38})`, color: strength > 0.45 ? '#ffffff' : '#34d399' }
+    : { background: `rgba(244, 63, 94, ${0.14 + strength * 0.38})`, color: strength > 0.45 ? '#ffffff' : '#fb7185' };
 };
 
 function App() {
@@ -90,7 +92,7 @@ function App() {
         </div>
       </header>
 
-      <main style={{ padding: '16px' }}>
+      <main>
         <div className="dash">
           {/* Stats Ribbon */}
           <div className="span-12 stats-grid">
@@ -112,53 +114,30 @@ function App() {
             </div>
           </div>
 
-          {/* Professional Single Segmented Control Switcher */}
-          <div className="span-12" style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '4px' }}>
-            <div style={{ display: 'inline-flex', background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: '4px', padding: '2px' }}>
-              <button 
-                onClick={() => setActiveTab('rolling')} 
-                style={{ 
-                  background: activeTab === 'rolling' ? 'var(--panel-2)' : 'transparent', 
-                  color: activeTab === 'rolling' ? 'var(--cyan)' : 'var(--text)', 
-                  border: 'none', 
-                  padding: '6px 16px', 
-                  fontSize: '11px', 
-                  fontWeight: '600', 
-                  cursor: 'pointer',
-                  borderRadius: '3px',
-                  fontFamily: 'var(--mono)',
-                  letterSpacing: '0.5px',
-                  textTransform: 'uppercase',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Rolling Table
-              </button>
-              <button 
-                onClick={() => setActiveTab('heatmap')} 
-                style={{ 
-                  background: activeTab === 'heatmap' ? 'var(--panel-2)' : 'transparent', 
-                  color: activeTab === 'heatmap' ? 'var(--green)' : 'var(--text)', 
-                  border: 'none', 
-                  padding: '6px 16px', 
-                  fontSize: '11px', 
-                  fontWeight: '600', 
-                  cursor: 'pointer',
-                  borderRadius: '3px',
-                  fontFamily: 'var(--mono)',
-                  letterSpacing: '0.5px',
-                  textTransform: 'uppercase',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Sector Heatmap
-              </button>
+          {/* Floating Levitating Tab Switcher */}
+          <div className="span-12 floating-tabs-row">
+            <div className="floating-dock-wrapper">
+              <div className="floating-dock">
+                <div className={`floating-glider ${activeTab}`} />
+                <button
+                  onClick={() => setActiveTab('rolling')}
+                  className={`floating-tab-btn ${activeTab === 'rolling' ? 'active-rolling' : ''}`}
+                >
+                  Rolling Table
+                </button>
+                <button
+                  onClick={() => setActiveTab('heatmap')}
+                  className={`floating-tab-btn ${activeTab === 'heatmap' ? 'active-heatmap' : ''}`}
+                >
+                  Sector Heatmap
+                </button>
+              </div>
             </div>
           </div>
 
           {/* TAB 1: ROLLING TABLE */}
           {activeTab === 'rolling' && (
-            <div className="span-6 panel a-cyan">
+            <div key="panel-rolling" className="span-6 panel a-cyan panel-anim-left">
               <div className="p-head">
                 <h2 className="p-title">Sector Rolling Returns</h2>
                 <span className="n">Click row to inspect sector</span>
@@ -177,7 +156,7 @@ function App() {
                         <tr 
                           key={row.name} 
                           onClick={() => setActiveSector(row.name)}
-                          style={{ cursor: 'pointer', background: isSelected ? 'rgba(76, 201, 240, 0.12)' : 'transparent' }}
+                          style={{ cursor: 'pointer', background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'transparent' }}
                         >
                           <td><strong>{row.name}</strong></td>
                           <td className="mono"><span className="positive">{market.advances || 0}</span> / <span className="negative">{market.declines || 0}</span></td>
@@ -195,7 +174,7 @@ function App() {
 
           {/* TAB 2: SECTOR HEATMAP */}
           {activeTab === 'heatmap' && (
-            <div className="span-6 panel a-green">
+            <div key="panel-heatmap" className="span-6 panel a-green panel-anim-left">
               <div className="p-head">
                 <h2 className="p-title">Sector Heatmap &amp; Relative Strength</h2>
                 <span className="n">Click row to inspect sector</span>
@@ -220,7 +199,7 @@ function App() {
                         <tr 
                           key={sector.name} 
                           onClick={() => setActiveSector(sector.name)} 
-                          style={{ cursor: 'pointer', background: isSelected ? 'rgba(61, 220, 151, 0.12)' : 'transparent' }}
+                          style={{ cursor: 'pointer', background: isSelected ? 'rgba(16, 185, 129, 0.12)' : 'transparent' }}
                         >
                           <td><strong>{sector.name}</strong></td>
                           <td className="mono"><span className="positive">{market.advances || 0}</span> / <span className="negative">{market.declines || 0}</span></td>
@@ -238,7 +217,7 @@ function App() {
 
           {/* RIGHT SIDE TABLE: CONDITIONAL BASED ON ACTIVE TAB */}
           {activeTab === 'rolling' ? (
-            <div className="span-6 panel a-cyan">
+            <div key={`ratio-${activeSector}`} className="span-6 panel a-cyan panel-anim-right">
               <div className="p-head">
                 <h2 className="p-title">Stock / Sector Index Ratio — {activeSector}</h2>
                 <span className="n">{selectedConstituents.length} stocks</span>
@@ -289,7 +268,7 @@ function App() {
               </div>
             </div>
           ) : (
-            <div className="span-6 panel a-violet">
+            <div key={`const-${activeSector}`} className="span-6 panel a-violet panel-anim-right">
               <div className="p-head">
                 <h2 className="p-title">Constituents &amp; Options — {activeSector}</h2>
                 <span className="n">{selectedConstituents.length} stocks</span>
@@ -319,7 +298,7 @@ function App() {
                             onClick={() => setSelectedStockSymbol(curr => curr === stock.symbol ? null : stock.symbol)}
                             style={{ 
                               cursor: 'pointer', 
-                              background: hasOptions ? 'rgba(167, 139, 250, 0.1)' : 'transparent' 
+                              background: hasOptions ? 'rgba(139, 92, 246, 0.1)' : 'transparent' 
                             }}
                           >
                             <td><strong>{stock.symbol}</strong> <small style={{ color: 'var(--muted)' }}>{stock.name}</small></td>
