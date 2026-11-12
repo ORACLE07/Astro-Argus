@@ -42,8 +42,11 @@ const icon = (name, size = 18) => {
 function App() {
   const [activeSector, setActiveSector] = useState('All sectors');
   const [query, setQuery] = useState('');
+  const [sort, setSort] = useState('change');
   const [saved, setSaved] = useState([]);
   const [heatmapDescending, setHeatmapDescending] = useState(true);
+  const [stockDescending, setStockDescending] = useState(true);
+  const [selectedStockSymbol, setSelectedStockSymbol] = useState(null);
   const [liveData, setLiveData] = useState(null);
 
   useEffect(() => { 
@@ -55,11 +58,22 @@ function App() {
 
   const currentStocks = liveData?.stocks?.length ? liveData.stocks : stocks;
   const rolling = liveData?.rolling?.length ? liveData.rolling : demoRolling;
-  const currentSectors = liveData?.sectors?.length ? [{ name: 'All sectors', count: currentStocks.length, change: liveData.nifty.change, color: '#5f7cff' }, ...liveData.sectors.map((s, i) => ({ ...s, color: s.color || sectorColors[i % sectorColors.length] }))]: sectors;
+  const currentSectors = liveData?.sectors?.length ? [{ name: 'All sectors', count: currentStocks.length, change: liveData.nifty.change, color: '#5f7cff' }, ...liveData.sectors.map((s, i) => ({ ...s, color: s.color || sectorColors[i % sectorColors.length] }))] : sectors;
   const breadthTotals = liveData?.overall || { stocks: currentStocks.length, advances: 0, declines: 0, unchanged: 0 };
+  const selectedSector = activeSector === 'All sectors' ? currentSectors[1]?.name : activeSector;
+  const selectedSectorData = currentSectors.find(sector => sector.name === selectedSector);
   const niftyLevel = liveData?.nifty.last || 0;
+  const selectedConstituents = currentStocks.filter(stock => stock.sector === selectedSector);
   const sortedHeatmapSectors = [...currentSectors.slice(1)].sort((a, b) => ((b.market?.fromOpen ?? 0) - (a.market?.fromOpen ?? 0)) * (heatmapDescending ? 1 : -1));
+  const sortedConstituents = [...selectedConstituents].sort((a, b) => (b.change - a.change) * (stockDescending ? 1 : -1));
+  const sectorVolume = selectedConstituents.reduce((total, stock) => total + (stock.volume || 0), 0);
+  
+  useEffect(() => { setSelectedStockSymbol(null); }, [selectedSector]);
+  
+  const formatPct = value => value == null ? 'N/A' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+  const buildLabel = stock => stock.futuresOi == null || stock.futuresOiChange == null ? 'No futures data' : stock.change >= 0 && stock.futuresOiChange >= 0 ? 'Long build' : stock.change < 0 && stock.futuresOiChange >= 0 ? 'Short build' : stock.change >= 0 ? 'Short covering' : 'Long unwinding';
   const ratio = (value, base) => value && base ? (value / base).toFixed(4) : 'N/A';
+  const toggleSaved = (symbol) => setSaved(s => s.includes(symbol) ? s.filter(x => x !== symbol) : [...s, symbol]);
 
   return (
     <div className="app">
@@ -124,7 +138,6 @@ function App() {
             <div><span>Market breadth</span><strong>{breadthTotals.declines ? (breadthTotals.advances / breadthTotals.declines).toFixed(2) : '0.00'}</strong><small><i className="tiny-up" /> advances / declines</small></div>
           </div>
 
-          {/* Table 1: Market Breadth */}
           <section className="section-title breadth-title">
             <div><span className="eyebrow">MARKET INTERNALS · OVERALL</span><h2>Market breadth</h2></div>
             <span className="rolling-note">Across {currentSectors.length - 1} NSE sectors</span>
@@ -148,7 +161,6 @@ function App() {
             </table>
           </div>
 
-          {/* Table 2: Sector Rolling Returns */}
           <section className="section-title rolling-title">
             <div><span className="eyebrow">MOMENTUM · TRADING-DAY RETURNS</span><h2>Sector rolling returns</h2></div>
             <span className="rolling-note">NSE index closes · constituent fallback where needed</span>
@@ -182,7 +194,6 @@ function App() {
             </table>
           </div>
 
-          {/* Table 3: Sector Heatmap */}
           <section className="section-title heatmap-title">
             <div><span className="eyebrow">RELATIVE STRENGTH · ALL NSE SECTORS</span><h2>Sector heatmap</h2></div>
             <span className="rolling-note"><i className="legend-positive" /> positive <i className="legend-negative" /> negative</span>
@@ -221,6 +232,82 @@ function App() {
                       <td className="mono">{(market.last || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td className="mono">{ratio(market.last, niftyLevel)}</td>
                     </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="constituent-heading" style={{ marginTop: '38px' }}>
+            <div><span className="eyebrow">SELECTED SECTOR</span><h3>{selectedSector || 'Select a sector'}</h3></div>
+            <span className="rolling-note">{selectedConstituents.length} stocks · volume share by sector</span>
+          </div>
+          <div className="table-wrap constituent-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>STOCK</th>
+                  <th><button className="table-sort" onClick={() => setStockDescending(value => !value)}>PRICE % {stockDescending ? '↓' : '↑'}</button></th>
+                  <th>FUTURES OI</th>
+                  <th>OI CHANGE</th>
+                  <th>OI %</th>
+                  <th>VOLUME</th>
+                  <th>VOLUME %</th>
+                  <th>BUILD</th>
+                  <th>STOCK / SECTOR INDEX</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedConstituents.map(stock => {
+                  const volumePercent = sectorVolume ? (stock.volume / sectorVolume) * 100 : 0;
+                  const isSelected = selectedStockSymbol === stock.symbol;
+                  const options = stock.optionSpurts || [];
+                  const totalOptionVolume = options.reduce((total, option) => total + option.volume, 0);
+                  return (
+                    <React.Fragment key={`${stock.sector}-${stock.symbol}`}>
+                      <tr 
+                        className={`${isSelected ? 'selected-row ' : ''}${options.length ? 'has-options' : ''}`} 
+                        onClick={() => setSelectedStockSymbol(current => current === stock.symbol ? null : stock.symbol)}
+                      >
+                        <td><strong>{stock.symbol}</strong><small className="stock-name">{stock.name}</small></td>
+                        <td><b className={stock.change < 0 ? 'negative' : 'positive'}>{formatPct(stock.change)}</b></td>
+                        <td className="mono">{stock.futuresOi == null ? 'N/A' : stock.futuresOi.toLocaleString('en-IN')}</td>
+                        <td className="mono">{stock.futuresOiChange == null ? 'N/A' : stock.futuresOiChange.toLocaleString('en-IN')}</td>
+                        <td className="mono">{formatPct(stock.futuresOiPercent)}</td>
+                        <td className="mono">{(stock.volume || 0).toLocaleString('en-IN')}</td>
+                        <td className="mono">{formatPct(volumePercent)}</td>
+                        <td><span className="build-label">{buildLabel(stock)}</span></td>
+                        <td className="mono">{ratio(stock.price, selectedSectorData?.market?.last)}</td>
+                      </tr>
+                      {isSelected && (
+                        <tr className="option-popover-row">
+                          <td colSpan="9">
+                            <div className="option-popover">
+                              <div className="option-popover-title">
+                                <strong>{stock.symbol} · active calls & puts</strong>
+                                <span>{options.length} contracts</span>
+                              </div>
+                              <table>
+                                <thead>
+                                  <tr><th>ACTIVE STRIKE</th><th>OI</th><th>VOLUME %</th></tr>
+                                </thead>
+                                <tbody>
+                                  {options.length ? options.map((option, index) => (
+                                    <tr key={`${stock.symbol}-option-${option.optionType}-${option.strikePrice}-${index}`}>
+                                      <td className="mono">{option.strikePrice.toLocaleString('en-IN')} {option.optionType} <small className="stock-name">{option.expiryDate}</small></td>
+                                      <td className="mono">{option.oi == null ? 'N/A' : option.oi.toLocaleString('en-IN')}</td>
+                                      <td className="mono">{formatPct(totalOptionVolume ? option.volume / totalOptionVolume * 100 : 0)}</td>
+                                    </tr>
+                                  )) : (
+                                    <tr><td colSpan="3" className="empty">No NSE active call or put contracts reported.</td></tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
