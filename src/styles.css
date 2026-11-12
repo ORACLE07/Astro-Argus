@@ -38,7 +38,7 @@ body {
 }
 
 a { color: inherit; text-decoration: none; }
-a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
 
 /* ---------- Keyframe Animations ---------- */
 @keyframes pulse {
@@ -69,6 +69,16 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 @keyframes rowFadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pipeDashFlow {
+    from { stroke-dashoffset: 60; }
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes gatePulseGlow {
+    0%, 100% { box-shadow: 0 0 24px rgba(245, 158, 11, 0.25), inset 0 0 14px rgba(56, 189, 248, 0.15); border-color: rgba(245, 158, 11, 0.55); }
+    50% { box-shadow: 0 0 38px rgba(56, 189, 248, 0.42), inset 0 0 22px rgba(245, 158, 11, 0.25); border-color: rgba(56, 189, 248, 0.65); }
 }
 
 /* ---------- Top bar ---------- */
@@ -129,7 +139,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .status.ok .dot { background: var(--green); box-shadow: 0 0 10px var(--green), 0 0 0 3px rgba(16, 185, 129, 0.2); animation: pulse 2.4s ease-in-out infinite; }
 .status.err .dot { background: var(--amber); box-shadow: 0 0 10px var(--amber), 0 0 0 3px rgba(245, 158, 11, 0.2); animation: pulse 2.4s ease-in-out infinite; }
 
-/* ---------- Floating Levitating Tabs ---------- */
+/* ---------- Floating Levitating 3-Tab Switcher ---------- */
 .floating-tabs-row {
     display: flex;
     justify-content: center;
@@ -161,7 +171,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .floating-dock {
     position: relative;
     display: inline-grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     background: rgba(15, 21, 33, 0.78);
     backdrop-filter: blur(20px) saturate(190%);
     -webkit-backdrop-filter: blur(20px) saturate(190%);
@@ -189,9 +199,9 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     top: 5px;
     bottom: 5px;
     left: 5px;
-    width: calc(50% - 5px);
+    width: calc((100% - 10px) / 3);
     border-radius: 999px;
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.4s ease, box-shadow 0.4s ease;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
     z-index: 1;
     pointer-events: none;
 }
@@ -210,12 +220,19 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     box-shadow: 0 4px 18px rgba(16, 185, 129, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
+.floating-glider.pipe {
+    transform: translateX(200%);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.24) 0%, rgba(245, 158, 11, 0.08) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    box-shadow: 0 4px 18px rgba(245, 158, 11, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
 .floating-tab-btn {
     position: relative;
     z-index: 2;
     background: transparent;
     border: none;
-    padding: 9px 28px;
+    padding: 9px 24px;
     font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
@@ -232,14 +249,17 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .floating-tab-btn:active { transform: scale(0.96); }
 .floating-tab-btn.active-rolling { color: var(--cyan); text-shadow: 0 0 14px rgba(56, 189, 248, 0.55); }
 .floating-tab-btn.active-heatmap { color: var(--green); text-shadow: 0 0 14px rgba(16, 185, 129, 0.55); }
+.floating-tab-btn.active-pipe { color: var(--amber); text-shadow: 0 0 14px rgba(245, 158, 11, 0.55); }
 
 /* ---------- Dashboard layout & panels ---------- */
 main { flex: 1; min-width: 0; padding: 16px 20px; }
 .dash { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; max-width: 1920px; margin: 0 auto; }
 .span-12 { grid-column: span 12; }
 .span-6 { grid-column: span 6; }
+.span-5 { grid-column: span 5; }
 .span-4 { grid-column: span 4; }
 .span-3 { grid-column: span 3; }
+.span-2 { grid-column: span 2; }
 
 .panel {
     --accent: var(--amber);
@@ -294,9 +314,121 @@ main { flex: 1; min-width: 0; padding: 16px 20px; }
     white-space: nowrap;
 }
 
+.sector-select {
+    background: rgba(15, 21, 33, 0.9);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    cursor: pointer;
+}
+
 .body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2a3b52 transparent; }
 .body::-webkit-scrollbar { width: 6px; }
 .body::-webkit-scrollbar-thumb { background: #2a3b52; border-radius: 99px; }
+
+/* ---------- Signal Pipe Narrow Filter Conduit (Tab 3) ---------- */
+.pipe-conduit-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 520px;
+    user-select: none;
+}
+
+.pipe-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.pipe-flow-line {
+    stroke-dasharray: 8 10;
+    animation: pipeDashFlow 1.4s linear infinite;
+}
+
+.pipe-flow-line.fast {
+    stroke-dasharray: 6 12;
+    animation: pipeDashFlow 0.9s linear infinite;
+}
+
+.narrow-filter-box {
+    position: relative;
+    z-index: 3;
+    width: 92%;
+    max-width: 195px;
+    background: rgba(12, 17, 28, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(245, 158, 11, 0.55);
+    border-radius: 14px;
+    padding: 12px 10px;
+    text-align: center;
+    animation: gatePulseGlow 3.2s ease-in-out infinite;
+}
+
+.filter-badge-top {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 4px;
+}
+
+.filter-direction-pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--cyan);
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 2px 7px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+}
+
+.filter-criteria-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: left;
+    margin-bottom: 8px;
+}
+
+.criteria-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    padding: 4px 7px;
+    border-radius: 6px;
+    background: rgba(18, 24, 36, 0.9);
+    border: 1px solid var(--line);
+    color: var(--text-2);
+}
+
+.criteria-chip span {
+    color: var(--green);
+    font-weight: 700;
+}
+
+.filter-funnel-stats {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #fff;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+}
 
 /* ---------- Tables & Data Rows ---------- */
 table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -307,16 +439,16 @@ th {
     font-weight: 700;
     letter-spacing: .09em;
     text-transform: uppercase;
-    padding: 10px 14px;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--line);
     position: sticky;
     top: 0;
     z-index: 10;
 }
 td {
-    padding: 10px 14px;
+    padding: 9px 12px;
     border-bottom: 1px solid var(--line-soft);
-    font-size: 12.5px;
+    font-size: 12px;
     transition: background 0.2s ease, color 0.2s ease;
 }
 tbody tr {
@@ -378,5 +510,12 @@ footer {
     margin-right: auto;
 }
 
-@media (max-width: 1200px) { .span-6 { grid-column: span 12; } }
-@media (max-width: 760px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .span-3, .span-4 { grid-column: span 12; } }
+@media (max-width: 1200px) {
+    .span-6, .span-5, .span-2 { grid-column: span 12; }
+    .pipe-conduit-col { min-height: 220px; }
+}
+@media (max-width: 760px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .span-3, .span-4 { grid-column: span 12; }
+    .floating-tab-btn { padding: 8px 12px; font-size: 10px; }
+}
