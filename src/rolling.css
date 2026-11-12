@@ -1,0 +1,26 @@
+.rolling-title { margin-top: 38px; }
+.rolling-note { color: #9ba6b2; font: 10px 'DM Mono'; }
+.rolling-table { margin-bottom: 4px; }
+.return-bars { display: flex; align-items: end; gap: 4px; height: 23px; }
+.return-bars i { display: block; width: 5px; min-height: 4px; background: var(--green); border-radius: 3px 3px 0 0; }
+.return-bars i.negative-bar { background: var(--red); }
+.breadth-title, .rotation-title { margin-top: 38px; }
+.rotation-pill { display: inline-block; padding: 5px 8px; border-radius: 4px; background: #e7f6f0; color: #087b5d; font: 500 10px 'DM Mono'; }
+.rotation-pill.laggard { background: #fbeceb; color: #b24f48; }
+.heatmap-table tr { cursor: pointer; }
+.heatmap-table tr:hover, .heatmap-table .selected-row { background: #f5f7ff; }
+.constituent-heading { display: flex; align-items: end; justify-content: space-between; margin: 0 2px 12px; }
+.constituent-heading h3 { margin: 6px 0 0; font-size: 15px; letter-spacing: -.3px; }
+.stock-name { display: block; color: #96a1af; font-size: 9px; margin-top: 3px; white-space: nowrap; }
+.build-label { color: #6d7c8d; font-size: 10px; white-space: nowrap; }
+.option-popover-row > td { padding: 0; background: #fff7ed; border-bottom: 1px solid #f3dfc3; }
+.constituent-table tr.has-options > td { background: #eefaf6; }
+.constituent-table tr.has-options:hover > td, .constituent-table tr.has-options.selected-row > td { background: #e1f5ee; }
+.option-popover { padding: 14px 20px 16px 52px; background: #fff7ed; }
+.option-popover-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; color: #9a6630; font-size: 10px; }
+.option-popover-title span { font: 10px 'DM Mono'; color: #b98b58; }
+.option-popover table { background: #fffaf3; border: 1px solid #f1dfc5; }
+.option-popover th { background: #fff3df; color: #b28a5c; }
+.option-popover td { padding: 10px 14px; border-bottom-color: #f5e8d5; }
+.table-sort { border: 0; padding: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; }
+.table-sort:hover { color: #526bd8; }
